@@ -7,5 +7,5 @@ public class Drone extends GridItem {
     public Drone(int id, int x, int y) {
         super(x, y);
         this.id = id;
-  }  
+    }  
 }
