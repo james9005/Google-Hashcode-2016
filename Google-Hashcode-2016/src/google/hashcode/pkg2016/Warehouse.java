@@ -20,4 +20,8 @@ public class Warehouse extends GridItem {
     public int getQuantity(ProductType type) {
         return stock.get(type);
     }
+    
+    public void reserve(ProductType type, int quantity) {
+      stock.put(type, stock.getOrDefault(type, 0) - quantity);
+    }
 }

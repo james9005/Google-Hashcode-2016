@@ -33,53 +33,95 @@ public class GoogleHashcode2016 {
         
         URL url = getClass().getResource("Inputs/sample_data.in");
         ParseFile(url.getPath());
-        //PerformIterations();
+        
+        int currentTurn = 0;
+        int currentOrder = 0;
+        
+        while(currentOrder < orders.size()) {
+          for (Drone d : drones) {
+            if (!d.isBusy()) {
+              Order o = orders.get(currentOrder++);
+              d.addOrderPlan(getOrderPlan(d, o));
+            }
+          }
+          
+          currentTurn++;
+        }
     }
     
-    public Drone getCurrentDrone() {
-      int getCurrentDrone = currentDroneId++;
+    public OrderPlan getOrderPlan(Drone d, Order o) {
+      List<OrderItem> orderItems = new ArrayList<OrderItem>();
+      List<Action> actions = new ArrayList<Action>();
+      List<Command> droneCommands = new ArrayList<Command>();
       
-      if (getCurrentDrone > drones.size()) {
-        getCurrentDrone = 0;
+      // Calculate the warehouses we need to go to for the products
+      for (ProductType ptKey : o.items.keySet()) {
+        int quantityRequired = o.items.get(ptKey);
+        int quantityObtained = 0;
+        
+        while (quantityObtained < quantityRequired) {
+          for (Warehouse w : warehouses) {
+            int currentWarehouseQuantity = w.getQuantity(ptKey);
+            int quantityRemaining = (quantityRequired - quantityObtained);
+            
+            if (currentWarehouseQuantity >= quantityRemaining) {
+              // If the warehouse has the required quantity we need
+              orderItems.addAll(getOrdersForQuantity(w, ptKey, quantityRemaining));
+              w.reserve(ptKey, quantityRemaining);
+              quantityObtained += quantityRemaining;
+            } else if(currentWarehouseQuantity < quantityRemaining && currentWarehouseQuantity > 0) {
+              // The warehouse has some of what we require
+              orderItems.addAll(getOrdersForQuantity(w, ptKey, currentWarehouseQuantity));
+              w.reserve(ptKey, currentWarehouseQuantity);
+              quantityObtained += currentWarehouseQuantity;
+            }
+          }
+        }
       }
       
-      return drones.get(getCurrentDrone);
+      // For each item on the order
+      for(OrderItem oi : orderItems) {
+        int distanceToWarehouse = oi.warehouse.distanceBetween(d);
+        
+        List<Action> flyingActions = createFlyingActions(distanceToWarehouse);
+        actions.addAll(flyingActions);
+        
+        droneCommands.add(new Command("L"));
+        actions.add(new Action("L"));
+        
+        int distanceToCustomer  = o.distanceBetween(d);
+        
+        flyingActions = createFlyingActions(distanceToCustomer);
+        actions.addAll(flyingActions);
+        
+        droneCommands.add(new Command("D"));
+        actions.add(new Action("D"));
+      }
+      
+      d.setLocationBasedOnOrder(o);
+      
+      return new OrderPlan(orderItems, actions, droneCommands);
+    }
+    
+    public List<Action> createFlyingActions(int distance) {
+      List<Action> flyActions = new ArrayList<Action>();
+      
+      for (int i = 0; i < distance; i++) {
+        flyActions.add(new Action("F"));
+      }
+      
+      return flyActions;
     }
 
-//    public void PerformIterations() {
-//      for (Order o in orders) {
-//        List<OrderAvailable> availablity = new ArrayList<OrderAvailable>();
-//
-//        Drone currentDrone = getCurrentDrone();
-//        
-//        Set<ProductType> keys = o.items.keySet();
-//        
-//        for (ProductType ptKey in keys) {
-//          int itemQuantity = o.items.get(ptKey);
-//          
-//          for (int i = 0; i < itemQuantity; i++) {
-//            for (Warehouse w in warehouses) {
-//              int currentWarehouseQuantity = w.getQuantity(ptKey);
-//              
-//              if (currentWarehouseQuantity > itemQuantity) {
-//                
-//              }
-//              OrderAvailable oa = new OrderAvailable(w, ptKey);
-//              
-//              availablity.add(oa);
-//            }
-//          }
-//          
-//          if // when no warehouses have quantity
-//        }
-//        
-//        
-//        
-//        // When we have the list go perform actions
-//      }
-//    }
-//    
-//    public 
+    public List<OrderItem> getOrdersForQuantity(Warehouse w, ProductType pt, int quantity) {
+      List<OrderItem> items = new ArrayList<OrderItem>();
+      
+      for(int i = 0; i < quantity; i++) {
+        items.add(new OrderItem(w, pt));
+      }
+      
+      return items;
+    }
 
     public void ParseFile(String path) {
         Scanner scanner;
