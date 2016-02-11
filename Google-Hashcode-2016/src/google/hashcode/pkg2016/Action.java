@@ -9,10 +9,24 @@ package google.hashcode.pkg2016;
  *
  * @author james
  */
-
-
-
-
 public class Action {
+
     public Drone d;
+
+    public void applyAction(ActionCommands a) {
+        switch (a) {
+            case FLY:
+                // do flying
+                break;
+            case LOAD:
+                break;
+            case DELIVER:
+                break;
+            case UNLOAD:
+                break;
+            case WAIT:
+                break;
+        }
+    }
+
 }
