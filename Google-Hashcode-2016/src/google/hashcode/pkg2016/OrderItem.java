@@ -6,5 +6,6 @@ public class OrderItem {
   
   public OrderItem(Warehouse w, ProductType pt) {
     warehouse = w;
+    productType = pt;
   }
 }
