@@ -47,6 +47,16 @@ public class GoogleHashcode2016 {
           
           currentTurn++;
         }
+        
+        for (Drone d : drones) {
+            outputCommands(d.id, d.getCommands());
+        }
+    }
+    
+    public void outputCommands(int droneId, List<Command> commands) {
+        for (Command c : commands) {
+            System.out.println(String.format("%d %s", droneId, c.toString()));
+        }
     }
     
     public OrderPlan getOrderPlan(Drone d, Order o) {
@@ -86,7 +96,7 @@ public class GoogleHashcode2016 {
         List<Action> flyingActions = createFlyingActions(distanceToWarehouse);
         actions.addAll(flyingActions);
         
-        droneCommands.add(new Command("L"));
+        droneCommands.add(new Command("L", oi.warehouse.id, oi.productType.id));
         actions.add(new Action("L"));
         
         int distanceToCustomer  = o.distanceBetween(d);
@@ -94,7 +104,7 @@ public class GoogleHashcode2016 {
         flyingActions = createFlyingActions(distanceToCustomer);
         actions.addAll(flyingActions);
         
-        droneCommands.add(new Command("D"));
+        droneCommands.add(new Command("D", o.id, oi.productType.id));
         actions.add(new Action("D"));
       }
       
