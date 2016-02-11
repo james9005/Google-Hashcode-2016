@@ -10,6 +10,7 @@ public class GoogleHashcode2016 {
 
     public int rows;
     public int cols;
+   
     public int maxTurns;
     public int maxDroneWeight;
     
