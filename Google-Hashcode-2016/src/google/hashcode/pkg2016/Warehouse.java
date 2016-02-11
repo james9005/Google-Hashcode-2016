@@ -14,8 +14,7 @@ public class Warehouse extends GridItem {
     }
     
     public void addStock(ProductType type, int q) {
-        int curr = stock.getOrDefault(type, 0);
-        stock.putIfAbsent(type, curr + q);
+        stock.put(type, stock.getOrDefault(type, 0) + q);
     }
     
     public int getQuantity(ProductType type) {

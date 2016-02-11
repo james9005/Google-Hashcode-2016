@@ -13,7 +13,6 @@ public class Order extends GridItem {
     }
     
     public void addItem(ProductType pt) {
-      int current = items.getOrDefault(pt, 0);
-      items.putIfAbsent(pt, current + 1);
+        items.put(pt, items.getOrDefault(pt, 0) + 1);
     }
 }
