@@ -58,11 +58,11 @@ public class GoogleHashcode2016 {
         
         int numOrders = Integer.parseInt(scanner.nextLine());
         
-        for (int i = 0; i > numOrders; i++) {
+        for (int i = 0; i < numOrders; i++) {
             Order o = CreateOrder(i, scanner.nextLine());
             orders.add(o);
             
-            int numItems = Inetger.parseInt(scanner.nextLine());
+            int numItems = Integer.parseInt(scanner.nextLine());
             String orderItemsLine = scanner.nextLine();
             
             ParseOrderItems(o, numItems, orderItemsLine);
@@ -110,10 +110,11 @@ public class GoogleHashcode2016 {
     }
     
     public void ParseOrderItems(Order o, int numItems, String line) {
-        String[] items = line.split(line);
+        String[] items = line.split(" ");
         
         for (int i = 0; i < numItems; i++) {
-            
+            int productType = Integer.parseInt(items[i]);
+            o.addItem(productTypes.get(productType));
         }
     }
 }
