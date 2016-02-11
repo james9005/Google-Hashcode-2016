@@ -33,7 +33,7 @@ public class GoogleHashcode2016 {
         
         URL url = getClass().getResource("Inputs/sample_data.in");
         ParseFile(url.getPath());
-        PerformIterations();
+        //PerformIterations();
     }
     
     public Drone getCurrentDrone() {
@@ -46,40 +46,40 @@ public class GoogleHashcode2016 {
       return drones.get(getCurrentDrone);
     }
 
-    public void PerformIterations() {
-      for (Order o in orders) {
-        List<OrderAvailable> availablity = new ArrayList<OrderAvailable>();
-
-        Drone currentDrone = getCurrentDrone();
-        
-        Set<ProductType> keys = o.items.keySet();
-        
-        for (ProductType ptKey in keys) {
-          int itemQuantity = o.items.get(ptKey);
-          
-          for (int i = 0; i < itemQuantity; i++) {
-            for (Warehouse w in warehouses) {
-              int currentWarehouseQuantity = w.getQuantity(ptKey);
-              
-              if (currentWarehouseQuantity > itemQuantity) {
-                
-              }
-              OrderAvailable oa = new OrderAvailable(w, ptKey);
-              
-              availablity.add(oa);
-            }
-          }
-          
-          if // when no warehouses have quantity
-        }
-        
-        
-        
-        // When we have the list go perform actions
-      }
-    }
-    
-    public 
+//    public void PerformIterations() {
+//      for (Order o in orders) {
+//        List<OrderAvailable> availablity = new ArrayList<OrderAvailable>();
+//
+//        Drone currentDrone = getCurrentDrone();
+//        
+//        Set<ProductType> keys = o.items.keySet();
+//        
+//        for (ProductType ptKey in keys) {
+//          int itemQuantity = o.items.get(ptKey);
+//          
+//          for (int i = 0; i < itemQuantity; i++) {
+//            for (Warehouse w in warehouses) {
+//              int currentWarehouseQuantity = w.getQuantity(ptKey);
+//              
+//              if (currentWarehouseQuantity > itemQuantity) {
+//                
+//              }
+//              OrderAvailable oa = new OrderAvailable(w, ptKey);
+//              
+//              availablity.add(oa);
+//            }
+//          }
+//          
+//          if // when no warehouses have quantity
+//        }
+//        
+//        
+//        
+//        // When we have the list go perform actions
+//      }
+//    }
+//    
+//    public 
 
     public void ParseFile(String path) {
         Scanner scanner;
