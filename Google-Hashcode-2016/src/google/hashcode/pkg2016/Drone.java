@@ -28,4 +28,14 @@ public class Drone extends GridItem {
       this.x = o.x;
       this.y = o.y;
     }
+    
+    public List<Command> getCommands() {
+        List<Command> commands = new ArrayList<Command>();
+        
+        for (OrderPlan op : orderPlans) {
+            commands.addAll(op.commands);
+        }
+        
+        return commands;
+    }
 }
