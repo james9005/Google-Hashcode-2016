@@ -13,6 +13,11 @@ public class Warehouse extends GridItem {
         this.stock = new HashMap<>();
     }
     
+    public void addStock(ProductType type, int q) {
+        int curr = stock.getOrDefault(type, 0);
+        stock.putIfAbsent(type, curr + q);
+    }
+    
     public int getQuantity(ProductType type) {
         return stock.get(type);
     }

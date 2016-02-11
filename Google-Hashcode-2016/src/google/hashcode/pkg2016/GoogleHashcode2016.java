@@ -45,6 +45,28 @@ public class GoogleHashcode2016 {
         int numProdTypes = Integer.parseInt(scanner.nextLine());
         String productTypeString = scanner.nextLine();
         ParseProductTypes(numProdTypes, productTypeString);
+        
+        int numWarehouses = Integer.parseInt(scanner.nextLine());
+        
+        for (int i = 0; i < numWarehouses; i++) {
+            Warehouse w = CreateWarehouse(i, scanner.nextLine());
+            warehouses.add(w);
+            
+            String stockLine = scanner.nextLine();
+            ParseStock(w, stockLine);
+        }
+        
+        int numOrders = Integer.parseInt(scanner.nextLine());
+        
+        for (int i = 0; i > numOrders; i++) {
+            Order o = CreateOrder(i, scanner.nextLine());
+            orders.add(o);
+            
+            int numItems = Inetger.parseInt(scanner.nextLine());
+            String orderItemsLine = scanner.nextLine();
+            
+            ParseOrderItems(o, numItems, orderItemsLine);
+        }
     }
     
     public void GetGeneralInfo(String line) {
@@ -66,6 +88,32 @@ public class GoogleHashcode2016 {
         
         for (int i = 0; i < num; i++) {
             productTypes.add(new ProductType(i, Integer.parseInt(weights[i])));
+        }
+    }
+    
+    public Warehouse CreateWarehouse(int id, String line) {
+        String[] pos = line.split(" ");
+        return new Warehouse(id, Integer.parseInt(pos[0]), Integer.parseInt(pos[1]));
+    }
+    
+    public void ParseStock(Warehouse w, String stockLine) {
+        String[] stock = stockLine.split(" ");
+        
+        for (int i = 0; i < stock.length; i++) {
+            w.addStock(productTypes.get(i), Integer.parseInt(stock[i]));
+        }
+    }
+    
+    public Order CreateOrder(int id, String line) {
+        String[] pos = line.split(" ");
+        return new Order(id, Integer.parseInt(pos[0]), Integer.parseInt(pos[1]));
+    }
+    
+    public void ParseOrderItems(Order o, int numItems, String line) {
+        String[] items = line.split(line);
+        
+        for (int i = 0; i < numItems; i++) {
+            
         }
     }
 }
