@@ -1,25 +1,37 @@
 package google.hashcode.pkg2016;
 
 import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class GoogleHashcode2016 {
 
-    public static int rows;
-    public static int cols;
-    public static int maxTurns;
-    public static int maxDroneWeight;
-    public static List<Drone> drones;
-    public static List<Warehouse> warehouses;
-    public static List<Order> orders;
-    public static List<ProductType> productTypes;
+    public int rows;
+    public int cols;
+    public int maxTurns;
+    public int maxDroneWeight;
+    public List<Drone> drones;
+    public List<Warehouse> warehouses;
+    public List<Order> orders;
+    public List<ProductType> productTypes;
     
     public static void main(String[] args) {
-        ParseFile("\\Inputs\\sample_data.in");
+        new GoogleHashcode2016();
     }
     
-    public static void ParseFile(String path) {
+    public GoogleHashcode2016() {
+        drones = new ArrayList<>();
+        warehouses = new ArrayList<>();
+        orders = new ArrayList<>();
+        productTypes = new ArrayList<>();
+        
+        URL url = getClass().getResource("Inputs/sample_data.in");
+        ParseFile(url.getPath());
+    }
+    
+    public void ParseFile(String path) {
         Scanner scanner;
         try {
             scanner = new Scanner(new File(path));
@@ -31,7 +43,7 @@ public class GoogleHashcode2016 {
         GetGeneralInfo(scanner.nextLine());
     }
     
-    public static void GetGeneralInfo(String line) {
+    public void GetGeneralInfo(String line) {
         String[] generalInfo = line.split(" ");
         rows = Integer.parseInt(generalInfo[0]);
         cols = Integer.parseInt(generalInfo[1]);
@@ -41,7 +53,7 @@ public class GoogleHashcode2016 {
         
         int numberOfDrones = Integer.parseInt(generalInfo[2]);
         for (int i = 0; i < numberOfDrones; i++) {
-            Drone d = new Drone(i, 0, 0);
+            drones.add(new Drone(i, 0, 0));
         }
     }
 }
