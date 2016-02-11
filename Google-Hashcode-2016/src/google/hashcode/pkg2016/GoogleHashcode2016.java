@@ -41,6 +41,10 @@ public class GoogleHashcode2016 {
         }
         
         GetGeneralInfo(scanner.nextLine());
+        
+        int numProdTypes = Integer.parseInt(scanner.nextLine());
+        String productTypeString = scanner.nextLine();
+        ParseProductTypes(numProdTypes, productTypeString);
     }
     
     public void GetGeneralInfo(String line) {
@@ -54,6 +58,14 @@ public class GoogleHashcode2016 {
         int numberOfDrones = Integer.parseInt(generalInfo[2]);
         for (int i = 0; i < numberOfDrones; i++) {
             drones.add(new Drone(i, 0, 0));
+        }
+    }
+    
+    public void ParseProductTypes(int num, String line) {
+        String[] weights = line.split(" ");
+        
+        for (int i = 0; i < num; i++) {
+            productTypes.add(new ProductType(i, Integer.parseInt(weights[i])));
         }
     }
 }
