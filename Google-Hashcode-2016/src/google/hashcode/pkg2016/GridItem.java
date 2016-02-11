@@ -4,6 +4,11 @@ public class GridItem {
     public int x;
     public int y;
     
+    public GridItem(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+    
     public int distanceBetween(GridItem other) {
         double rowDiff = this.x - other.x;
         double colDiff = this.y - other.y;

@@ -1,14 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package google.hashcode.pkg2016;
 
-/**
- *
- * @author james
- */
 public class ProductType {
     
+    public int id;
+    public int weight;
+    
+    public ProductType(int id, int weight) {
+        this.id = id;
+        this.weight = weight;
+    }
 }
