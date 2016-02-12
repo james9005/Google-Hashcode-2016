@@ -31,7 +31,7 @@ public class GoogleHashcode2016 {
         orders = new ArrayList<>();
         productTypes = new ArrayList<>();
 
-        URL url = getClass().getResource("Inputs/sample_data.in");
+        URL url = getClass().getResource("Inputs/busy_day.in");
         ParseFile(url.getPath());
 
         int currentTurn = 0;
@@ -61,6 +61,40 @@ public class GoogleHashcode2016 {
         }
     }
 
+    public Warehouse getClosestWarehouseWithProductType(Order o, ProductType pt) {
+      Warehouse closestWarehouse = warehouses.get(0);
+      int closestWarehouseDistance = closestWarehouse.distanceBetween(o);
+                    
+      for (Warehouse w : warehouses) {
+        int warehouseToCustomer = w.distanceBetween(o);
+          
+        if (warehouseToCustomer < closestWarehouseDistance && w.getQuantity(pt) > 0) {
+           closestWarehouse = w;
+           closestWarehouseDistance = warehouseToCustomer;
+        }
+      }
+      
+      return closestWarehouse;
+    }
+    
+    public Warehouse getClosestWarehouseForAllProductTypes(Order o) {
+      Warehouse closestWarehouse = warehouses.get(0);
+      int closestWarehouseDistance = closestWarehouse.distanceBetween(o);
+                    
+      for (ProductType pt : o.items.keySet()) {
+        for (Warehouse w : warehouses) {
+          int warehouseToCustomer = w.distanceBetween(o);
+
+          if (warehouseToCustomer < closestWarehouseDistance && w.getQuantity(pt) > 0) {
+              closestWarehouse = w;
+              closestWarehouseDistance = warehouseToCustomer;
+          }
+        }
+      }
+      
+      return closestWarehouse; 
+    }
+    
     public OrderPlan getOrderPlan(Drone d, Order o) {
       List<OrderItem> orderItems = new ArrayList<OrderItem>();
       List<Action> actions = new ArrayList<Action>();
@@ -70,6 +104,7 @@ public class GoogleHashcode2016 {
       // From there we can calculate the time taken to complete the single order
       // For an order we also want to store what the closest warehouse is,
       // so that we can determine which drone is best suited
+      Warehouse firstWarehouse = getClosestWarehouseForAllProductTypes(o);
 
       // Calculate the warehouses we need to go to for the products
       for (ProductType ptKey : o.items.keySet()) {
@@ -78,21 +113,21 @@ public class GoogleHashcode2016 {
 
         while (quantityObtained < quantityRequired) {
           // TODO: We can also try to get the closest warehouse to the customer, to improve delivery time
-          for (Warehouse w : warehouses) {
-            int currentWarehouseQuantity = w.getQuantity(ptKey);
-            int quantityRemaining = (quantityRequired - quantityObtained);
+          Warehouse closestAvailableWarehouse = getClosestWarehouseWithProductType(o, ptKey);
+          
+          int currentWarehouseQuantity = closestAvailableWarehouse.getQuantity(ptKey);
+          int quantityRemaining = (quantityRequired - quantityObtained);
 
-            if (currentWarehouseQuantity >= quantityRemaining) {
-              // If the warehouse has the required quantity we need
-              orderItems.addAll(getOrdersForQuantity(w, ptKey, quantityRemaining));
-              w.reserve(ptKey, quantityRemaining);
-              quantityObtained += quantityRemaining;
-            } else if(currentWarehouseQuantity < quantityRemaining && currentWarehouseQuantity > 0) {
-              // The warehouse has some of what we require
-              orderItems.addAll(getOrdersForQuantity(w, ptKey, currentWarehouseQuantity));
-              w.reserve(ptKey, currentWarehouseQuantity);
-              quantityObtained += currentWarehouseQuantity;
-            }
+          if (currentWarehouseQuantity >= quantityRemaining) {
+            // If the warehouse has the required quantity we need
+            orderItems.addAll(getOrdersForQuantity(closestAvailableWarehouse, ptKey, quantityRemaining));
+            closestAvailableWarehouse.reserve(ptKey, quantityRemaining);
+            quantityObtained += quantityRemaining;
+          } else if(currentWarehouseQuantity < quantityRemaining && currentWarehouseQuantity > 0) {
+            // The warehouse has some of what we require
+            orderItems.addAll(getOrdersForQuantity(closestAvailableWarehouse, ptKey, currentWarehouseQuantity));
+            closestAvailableWarehouse.reserve(ptKey, currentWarehouseQuantity);
+            quantityObtained += currentWarehouseQuantity;
           }
         }
       }
@@ -119,7 +154,7 @@ public class GoogleHashcode2016 {
 
       d.setLocationBasedOnOrder(o);
 
-      return new OrderPlan(orderItems, actions, droneCommands);
+      return new OrderPlan(orderItems, actions, droneCommands, firstWarehouse);
     }
 
     public List<Action> createFlyingActions(int distance) {
