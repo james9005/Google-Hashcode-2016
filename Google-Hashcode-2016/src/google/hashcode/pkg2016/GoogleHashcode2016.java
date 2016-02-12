@@ -62,6 +62,8 @@ public class GoogleHashcode2016 {
               d.addOrderPlan(op);
               
               System.out.println(String.format("Drone %d working on order %d", d.id, op.order.id));
+              
+              currentOrder++;
             }
           }
 
