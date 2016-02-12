@@ -52,9 +52,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Files\Inputs\busy_day.in" />
-    <None Include="Files\Inputs\mother_of_all_warehouses.in" />
-    <None Include="Files\Inputs\redundancy.in" />
+    <None Include="Files\Inputs\busy_day.in">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Files\Inputs\mother_of_all_warehouses.in">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Files\Inputs\redundancy.in">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Files\Inputs\sample_data.in">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Files\Outputs\" />
