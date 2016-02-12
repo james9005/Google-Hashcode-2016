@@ -52,7 +52,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="CustomerOrderTest.cs" />
+    <Compile Include="OrderTest.cs" />
     <Compile Include="DroneTest.cs" />
     <Compile Include="GridItemTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -15,6 +15,7 @@ namespace HashCode2016 {
         public static int[] productTypeWeights;
 
         public static List<Warehouse> warehouses;
+        public static List<Order> orders;
 
         public static void Main(string[] args) {
             ParseFile(@"Files\Inputs\sample_data.in");
@@ -48,7 +49,26 @@ namespace HashCode2016 {
                     }
                 }
 
-                // TODO: Get orders.
+                orders = new List<Order>();
+                int numberOfOrders = Convert.ToInt32(reader.ReadLine());
+
+                for (int i = 0; i < numberOfOrders; i++) {
+                    var pos = Split(reader.ReadLine());
+                    var order = new Order(i, pos[0], pos[1]);
+                    orders.Add(order);
+
+                    int numberOfOrderItems = Convert.ToInt32(reader.ReadLine());
+                    var orderItems = Split(reader.ReadLine());
+                    foreach (int item in orderItems) {
+                        // 'Item' is the product type.
+                        order.AddItem(item);
+                    }
+                }
+
+                // Sanity check
+                if (!reader.EndOfStream) {
+                    throw new Exception("There are still more lines to read...");
+                }
             }
         }
 
