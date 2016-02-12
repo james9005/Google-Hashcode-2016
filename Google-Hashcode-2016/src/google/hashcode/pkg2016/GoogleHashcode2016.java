@@ -1,13 +1,16 @@
 package google.hashcode.pkg2016;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
+import java.util.TreeSet;
 
 public class GoogleHashcode2016 {
 
@@ -109,37 +112,29 @@ public class GoogleHashcode2016 {
     }
 
     public Warehouse getClosestWarehouseWithProductType(Order o, ProductType pt) {
-      Warehouse closestWarehouse = warehouses.get(0);
-      int closestWarehouseDistance = closestWarehouse.distanceBetween(o);
-                    
+      Multimap<Integer, Warehouse> warehouseDistances = HashMultimap.create();
+      
+      // Get all the warehouse distances and store them in the Multimap
       for (Warehouse w : warehouses) {
         int warehouseToCustomer = w.distanceBetween(o);
-          
-        if (warehouseToCustomer < closestWarehouseDistance && w.getQuantity(pt) > 0) {
-           closestWarehouse = w;
-           closestWarehouseDistance = warehouseToCustomer;
-        }
+
+        warehouseDistances.put(warehouseToCustomer, w);
       }
       
-      return closestWarehouse;
-    }
-    
-    public Warehouse getClosestWarehouseForAllProductTypes(Order o) {
-      Warehouse closestWarehouse = warehouses.get(0);
-      int closestWarehouseDistance = closestWarehouse.distanceBetween(o);
-                    
-      for (ProductType pt : o.items.keySet()) {
-        for (Warehouse w : warehouses) {
-          int warehouseToCustomer = w.distanceBetween(o);
+      // Order our data by the shortest distance
+      TreeSet<Integer> keys = new TreeSet(warehouseDistances.keySet());
+      
+      for(Integer k : keys) {
+        Collection<Warehouse> closestWarehouses = warehouseDistances.get(k);
 
-          if (warehouseToCustomer < closestWarehouseDistance && w.getQuantity(pt) > 0) {
-              closestWarehouse = w;
-              closestWarehouseDistance = warehouseToCustomer;
+        for (Warehouse w : closestWarehouses) {
+          if (w.getQuantity(pt) > 0) {
+            return w;
           }
         }
       }
       
-      return closestWarehouse; 
+      return null; 
     }
     
     public OrderPlan getOrderPlan(Drone d, Order o) {
@@ -151,12 +146,10 @@ public class GoogleHashcode2016 {
       // From there we can calculate the time taken to complete the single order
       // For an order we also want to store what the closest warehouse is,
       // so that we can determine which drone is best suited
-      Warehouse firstWarehouse = getClosestWarehouseForAllProductTypes(o);
+      
+      Warehouse firstWarehouse = null;
 
-      d.x = firstWarehouse.x;
-      d.y = firstWarehouse.y;
-
-      // Calculate the warehouses we need to go to for the products
+      // Calculate the warehouses we need to go to for the roducts
       for (ProductType ptKey : o.items.keySet()) {
         int quantityRequired = o.items.get(ptKey);
         int quantityObtained = 0;
@@ -164,6 +157,10 @@ public class GoogleHashcode2016 {
         while (quantityObtained < quantityRequired) {
           // TODO: We can also try to get the closest warehouse to the customer, to improve delivery time
           Warehouse closestAvailableWarehouse = getClosestWarehouseWithProductType(o, ptKey);
+          
+          if (firstWarehouse == null) {
+            firstWarehouse = closestAvailableWarehouse;
+          }
           
           int currentWarehouseQuantity = closestAvailableWarehouse.getQuantity(ptKey);
           int quantityRemaining = (quantityRequired - quantityObtained);
@@ -181,6 +178,9 @@ public class GoogleHashcode2016 {
           }
         }
       }
+      
+      d.x = firstWarehouse.x;
+      d.y = firstWarehouse.y;
 
       // For each item on the order
       for(OrderItem oi : orderItems) {
