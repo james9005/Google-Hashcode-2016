@@ -14,11 +14,14 @@ namespace HashCode2016 {
         public static int numberOfProductTypes;
         public static int[] productTypeWeights;
 
+        private static List<Drone> drones;
         public static List<Warehouse> warehouses;
         public static List<Order> orders;
 
         public static void Main(string[] args) {
             ParseFile(@"Files\Inputs\sample_data.in");
+            Go();
+            // TODO: output commands to a file.
         }
 
         #region Parse
@@ -28,7 +31,14 @@ namespace HashCode2016 {
                 var info = Split(reader.ReadLine());
                 rows = info[0];
                 cols = info[1];
+
+                drones = new List<Drone>();
                 numberOfDrones = info[2];
+
+                for (int i = 0; i < numberOfDrones; i++) {
+                    drones.Add(new Drone(i, 0, 0));
+                }
+
                 maxTurns = info[3];
                 maxDronePayload = info[4];
 
@@ -80,5 +90,35 @@ namespace HashCode2016 {
         }
 
         #endregion
+
+        private static void Go() {
+            int currentTurn = 0;
+            while (currentTurn < maxTurns) {
+                // We need to find a task for the drones that aren't busy.
+                foreach (var drone in drones.Where(d => !d.IsBusy)) {
+                    // 1. Find an order for the drone.
+                    // 2. Locate the warehouses that we'll need to go to and create the drone commands.
+                    // 3. Remove the stock from those warehouses (effectively pre-ordering items).
+                    // 4. Calculate the number of turns it'll take to process this order.
+                    // 5. Assuming there are enough turns left, move the drone to the order location.
+                    // 6. Make the drone busy for the number of turns it'll take to process this order.
+                    // 7. Remove the order from the list.
+                }
+
+                if (!orders.Any() && !drones.Any(d => d.IsBusy)) {
+                    // There are no orders left and all drones have finished their tasks.
+                    break;
+                }
+
+                currentTurn++;
+                UpdateDrones();
+            }
+        }
+
+        private static void UpdateDrones() {
+            foreach (var drone in drones) {
+                drone.Update();
+            }
+        }
     }
 }
