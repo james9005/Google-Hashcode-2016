@@ -6,9 +6,13 @@ using System.Linq;
 namespace HashCode2016 {
     public class Program {
 
-        //public static string scenarioName = "redundancy";
-        //public static string scenarioName = "busy_day";
-        public static string scenarioName = "mother_of_all_warehouses";
+        public static string[] scenarios = new string[] {
+            "redundancy",
+            "busy_day",
+            "mother_of_all_warehouses",
+        };
+
+        public static int score;
 
         public static int rows;
         public static int cols;
@@ -23,17 +27,20 @@ namespace HashCode2016 {
         public static List<Order> remainingOrders;
 
         public static void Main(string[] args) {
-            ParseFile();
-            Go();
-            OutputCommandsToFile();
+            foreach (string scenario in scenarios) {
+                ParseFile(scenario);
+                Go();
+                OutputCommandsToFile(scenario);
+            }
 
+            Console.WriteLine("Score: " + score);
             Console.ReadLine();
         }
 
         #region Parse
 
-        private static void ParseFile() {
-            string inputPath = string.Format(@"Files\Inputs\{0}.in", scenarioName);
+        private static void ParseFile(string scenario) {
+            string inputPath = string.Format(@"Files\Inputs\{0}.in", scenario);
 
             using (StreamReader reader = new StreamReader(inputPath)) {
                 var info = Split(reader.ReadLine());
@@ -105,8 +112,13 @@ namespace HashCode2016 {
             while (currentTurn < numberOfTurns) {
                 // We need to find a task for the drones that aren't busy.
                 foreach (var drone in drones.Where(d => !d.IsBusy)) {
-                    // Find an order for the drone.
-                    var order = remainingOrders.FirstOrDefault();
+                    // Find an order for the drone. We'll do the orders with
+                    // the fewest items to try get orders completed as early
+                    // as possible. The size of the order doesn't affect how
+                    // many points you get.
+                    var order = remainingOrders
+                        .OrderBy(o => o.GetTotalNumberOfItems())
+                        .FirstOrDefault();
 
                     if (order == null) {
                         // No orders left - nothing for the drones to do.
@@ -127,7 +139,7 @@ namespace HashCode2016 {
                         // Make the drone busy for the number of turns it'll take to process this order.
                         drone.Move(order);
                         drone.AddCommandsToHistory(deliveryPlan.DroneCommands);
-                        drone.MakeBusy(deliveryPlan.NumberOfTurns);
+                        drone.BusyCounter = deliveryPlan.NumberOfTurns;
 
                         // Remove the order from the list.
                         remainingOrders.Remove(order);
@@ -142,7 +154,7 @@ namespace HashCode2016 {
                 }
 
                 currentTurn++;
-                UpdateDrones();
+                UpdateDrones(currentTurn);
             }
         }
 
@@ -217,9 +229,16 @@ namespace HashCode2016 {
             return plan;
         }
 
-        private static void UpdateDrones() {
+        private static void UpdateDrones(int currentTurn) {
             foreach (var drone in drones) {
-                drone.Update();
+                if (drone.IsBusy) {
+                    drone.BusyCounter--;
+
+                    if (!drone.IsBusy) {
+                        // The drone has finished its order. Add to the total score.
+                        score += (int)Math.Ceiling(100 * (decimal)(numberOfTurns - currentTurn) / numberOfTurns);
+                    }
+                }
             }
         }
 
@@ -227,17 +246,13 @@ namespace HashCode2016 {
 
         #region Output
 
-        private static void OutputCommandsToFile() {
-            string outputPath = string.Format(@"..\..\Files\Outputs\{0}.txt", scenarioName);
+        private static void OutputCommandsToFile(string scenario) {
+            string outputPath = string.Format(@"..\..\Files\Outputs\{0}.txt", scenario);
 
             using (StreamWriter writer = new StreamWriter(outputPath)) {
                 var allCommands = drones.SelectMany(d => d.CommandHistory);
 
-                int commandCount = allCommands.Count();
-
-                Console.WriteLine("Number Of Commands: " + commandCount);
-
-                writer.Write(commandCount);
+                writer.Write(allCommands.Count());
 
                 foreach (string command in allCommands) {
                     writer.Write(Environment.NewLine + command);

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 namespace HashCode2016 {
     public class Drone : GridItem {
 
-        private int busyCounter;
         private Dictionary<int, int> inventory;
         private List<string> commandHistory;
 
@@ -16,8 +15,10 @@ namespace HashCode2016 {
 
         public int Id { get; set; }
 
+        public int BusyCounter { get; set; }
+
         public bool IsBusy {
-            get { return busyCounter > 0; }
+            get { return BusyCounter > 0; }
         }
 
         public IEnumerable<string> CommandHistory {
@@ -32,10 +33,6 @@ namespace HashCode2016 {
         public void Move(int x, int y) {
             X = x;
             Y = y;
-        }
-
-        public void MakeBusy(int numberOfTurns) {
-            busyCounter = numberOfTurns;
         }
 
         public void Load(int productType, int quantity) {
@@ -76,12 +73,6 @@ namespace HashCode2016 {
 
         public void AddCommandsToHistory(IEnumerable<string> commands) {
             commandHistory.AddRange(commands);
-        }
-
-        public void Update() {
-            if (IsBusy) {
-                busyCounter--;
-            }
         }
     }
 }
