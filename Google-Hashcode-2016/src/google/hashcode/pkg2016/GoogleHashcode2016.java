@@ -1,6 +1,9 @@
 package google.hashcode.pkg2016;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,17 +25,18 @@ public class GoogleHashcode2016 {
     public List<ProductType> productTypes;
 
     public static void main(String[] args) {
-        new GoogleHashcode2016();
+        if (args.length == 2) {
+            new GoogleHashcode2016(args[0], args[1]);
+        }
     }
 
-    public GoogleHashcode2016() {
+    public GoogleHashcode2016(String inputPath, String outputPath) {
         drones = new ArrayList<>();
         warehouses = new ArrayList<>();
         orders = new ArrayList<>();
         productTypes = new ArrayList<>();
 
-        URL url = getClass().getResource("Inputs/busy_day.in");
-        ParseFile(url.getPath());
+        ParseFile(inputPath);
 
         int currentTurn = 0;
         int currentOrder = 0;
@@ -49,15 +53,40 @@ public class GoogleHashcode2016 {
 
           currentTurn++;
         }
-
+    
+        List<String> allCommands = new ArrayList<>();
+        
         for (Drone d : drones) {
-            outputCommands(d.id, d.getCommands());
+            allCommands.addAll(outputCommands(d.id, d.getCommands()));
         }
+        
+        WriteFile(outputPath, allCommands);
     }
 
-    public void outputCommands(int droneId, List<Command> commands) {
+    public List<String> outputCommands(int droneId, List<Command> commands) {
+        List<String> commandsForDrone = new ArrayList<>();
+        
         for (Command c : commands) {
-            System.out.println(String.format("%d %s", droneId, c.toString()));
+            commandsForDrone.add(String.format("%d %s", droneId, c.toString()));
+        }
+        
+        return commandsForDrone;
+    }
+    
+    public void WriteFile(String path, List<String> commands) {
+        BufferedWriter writer = null;
+                
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path)));
+            
+            for(String c : commands) {
+                writer.write(c + '\n');
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            try {writer.close();} catch (Exception ex) {/*ignore*/}
         }
     }
 
