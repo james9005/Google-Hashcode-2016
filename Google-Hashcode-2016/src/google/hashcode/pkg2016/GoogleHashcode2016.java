@@ -48,6 +48,8 @@ public class GoogleHashcode2016 {
               // Calculate the closest warehouse and find the shortest plan for a drone to run with
               Order o = orders.get(currentOrder++);
               d.addOrderPlan(getOrderPlan(d, o));
+              
+              System.out.println(String.format("Drone %d working on order %d", d.id, o.id));
             }
           }
 
