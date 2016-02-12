@@ -31,14 +31,7 @@ namespace HashCode2016 {
                 var info = Split(reader.ReadLine());
                 rows = info[0];
                 cols = info[1];
-
-                drones = new List<Drone>();
                 numberOfDrones = info[2];
-
-                for (int i = 0; i < numberOfDrones; i++) {
-                    drones.Add(new Drone(i, 0, 0));
-                }
-
                 maxTurns = info[3];
                 maxDronePayload = info[4];
 
@@ -57,6 +50,12 @@ namespace HashCode2016 {
                     for (int j = 0; j < stock.Length; j++) {
                         warehouse.AddStock(j, stock[j]);
                     }
+                }
+
+                drones = new List<Drone>();
+                for (int i = 0; i < numberOfDrones; i++) {
+                    // Drones start the simulation at the first warehouse.
+                    drones.Add(new Drone(i, warehouses[0].X, warehouses[0].Y));
                 }
 
                 orders = new List<Order>();

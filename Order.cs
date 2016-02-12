@@ -14,13 +14,13 @@ namespace HashCode2016 {
 
         public int Id { get; set; }
 
-        public void AddItem(int type) {
-            AdjustQuantity(type, 1);
+        public void AddItem(int productType) {
+            AdjustQuantity(productType, 1);
         }
 
-        public int GetQuantityToDeliver(int type) {
+        public int GetQuantityToDeliver(int productType) {
             int quantity;
-            items.TryGetValue(type, out quantity);
+            items.TryGetValue(productType, out quantity);
             return quantity;
         }
 
@@ -28,24 +28,18 @@ namespace HashCode2016 {
             return items.Values.Sum();
         }
 
-        public void DeliverItems(int type, int quantity) {
-            AdjustQuantity(type, -quantity);
+        public void DeliverItems(int productType, int quantity) {
+            AdjustQuantity(productType, -quantity);
         }
 
-        private void AdjustQuantity(int type, int adjustment) {
-            int current = 0;
-
-            if (items.ContainsKey(type)) {
-                current = items[type];
-            }
-
-            int newQuantity = current + adjustment;
+        private void AdjustQuantity(int productType, int adjustment) {
+            int newQuantity = GetQuantityToDeliver(productType) + adjustment;
 
             if (newQuantity < 0) {
                 throw new Exception("Delivered too many.");
             }
 
-            items[type] = newQuantity;
+            items[productType] = newQuantity;
         }
     }
 }

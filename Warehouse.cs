@@ -14,38 +14,32 @@ namespace HashCode2016 {
 
         public int Id { get; set; }
 
-        public void AddStock(int type, int quantity) {
-            AdjustStock(type, quantity);
+        public void AddStock(int productType, int quantity) {
+            AdjustStock(productType, quantity);
         }
 
-        public void RemoveStock(int type, int quantity) {
-            AdjustStock(type, -quantity);
+        public void RemoveStock(int productType, int quantity) {
+            AdjustStock(productType, -quantity);
         }
 
-        public int GetStockLevel(int type) {
+        public int GetStockLevel(int productType) {
             int quantity;
-            stock.TryGetValue(type, out quantity);
+            stock.TryGetValue(productType, out quantity);
             return quantity;
         }
 
-        private void AdjustStock(int type, int adjustment) {
-            int current = 0;
-
-            if (stock.ContainsKey(type)) {
-                current = stock[type];
-            }
-
-            int newQuantity = current + adjustment;
+        private void AdjustStock(int productType, int adjustment) {
+            int newQuantity = GetStockLevel(productType) + adjustment;
 
             if (newQuantity < 0) {
                 throw new Exception("Can't have negative stock.");
             }
 
-            stock[type] = newQuantity;
+            stock[productType] = newQuantity;
         }
 
-        public bool IsInStock(int type) {
-            return GetStockLevel(type) > 0;
+        public bool IsInStock(int productType) {
+            return GetStockLevel(productType) > 0;
         }
     }
 }
