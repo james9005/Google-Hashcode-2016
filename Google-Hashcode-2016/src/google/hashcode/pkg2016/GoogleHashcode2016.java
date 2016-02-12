@@ -40,16 +40,28 @@ public class GoogleHashcode2016 {
 
         int currentTurn = 0;
         int currentOrder = 0;
+        
+        List<OrderPlan> orderPlans = new ArrayList<OrderPlan>();
+        
+        // TODO: We can sort the OrderPlan based on quickest time to complete
+        
+        Drone dummyDrone = new Drone(0, 0, 0);
+        
+        for (Order o : orders) {
+          orderPlans.add(getOrderPlan(dummyDrone, o));
+        }
+        
+        System.out.println("Order plans generated");
 
-        while(currentOrder < orders.size()) {
+        while(currentOrder < orderPlans.size()) {
           for (Drone d : drones) {
             if (!d.isBusy()) {
               // TODO: We want to get all the order plans (which will be warehouse to customer)
               // Calculate the closest warehouse and find the shortest plan for a drone to run with
-              Order o = orders.get(currentOrder++);
-              d.addOrderPlan(getOrderPlan(d, o));
+              OrderPlan op = orderPlans.get(currentOrder);
+              d.addOrderPlan(op);
               
-              System.out.println(String.format("Drone %d working on order %d", d.id, o.id));
+              System.out.println(String.format("Drone %d working on order %d", d.id, op.order.id));
             }
           }
 
@@ -139,6 +151,9 @@ public class GoogleHashcode2016 {
       // so that we can determine which drone is best suited
       Warehouse firstWarehouse = getClosestWarehouseForAllProductTypes(o);
 
+      d.x = firstWarehouse.x;
+      d.y = firstWarehouse.y;
+
       // Calculate the warehouses we need to go to for the products
       for (ProductType ptKey : o.items.keySet()) {
         int quantityRequired = o.items.get(ptKey);
@@ -187,7 +202,7 @@ public class GoogleHashcode2016 {
 
       d.setLocationBasedOnOrder(o);
 
-      return new OrderPlan(orderItems, actions, droneCommands, firstWarehouse);
+      return new OrderPlan(orderItems, actions, droneCommands, firstWarehouse, o);
     }
 
     public List<Action> createFlyingActions(int distance) {
