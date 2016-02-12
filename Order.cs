@@ -18,6 +18,10 @@ namespace HashCode2016 {
             AdjustQuantity(productType, 1);
         }
 
+        public IEnumerable<int> GetProductTypesToDeliver() {
+            return new List<int>(items.Keys);
+        }
+
         public int GetQuantityToDeliver(int productType) {
             int quantity;
             items.TryGetValue(productType, out quantity);

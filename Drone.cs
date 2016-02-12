@@ -6,16 +6,22 @@ namespace HashCode2016 {
 
         private int busyCounter;
         private Dictionary<int, int> inventory;
+        private List<string> commandHistory;
 
         public Drone(int id, int x, int y) : base(x, y) {
             Id = id;
             inventory = new Dictionary<int, int>();
+            commandHistory = new List<string>();
         }
 
         public int Id { get; set; }
 
         public bool IsBusy {
             get { return busyCounter > 0; }
+        }
+
+        public IEnumerable<string> CommandHistory {
+            get { return commandHistory; }
         }
 
         public void Move(GridItem gridItem) {
@@ -66,6 +72,10 @@ namespace HashCode2016 {
             }
 
             return weight;
+        }
+
+        public void AddCommandsToHistory(IEnumerable<string> commands) {
+            commandHistory.AddRange(commands);
         }
 
         public void Update() {
