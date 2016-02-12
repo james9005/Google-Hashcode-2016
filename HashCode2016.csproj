@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeliveryPlan.cs" />
     <Compile Include="Order.cs" />
     <Compile Include="Drone.cs" />
     <Compile Include="GridItem.cs" />
