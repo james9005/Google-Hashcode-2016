@@ -40,6 +40,8 @@ public class GoogleHashcode2016 {
         while(currentOrder < orders.size()) {
           for (Drone d : drones) {
             if (!d.isBusy()) {
+              // TODO: We want to get all the order plans (which will be warehouse to customer)
+              // Calculate the closest warehouse and find the shortest plan for a drone to run with
               Order o = orders.get(currentOrder++);
               d.addOrderPlan(getOrderPlan(d, o));
             }
@@ -64,12 +66,18 @@ public class GoogleHashcode2016 {
       List<Action> actions = new ArrayList<Action>();
       List<Command> droneCommands = new ArrayList<Command>();
 
+      // TODO: Initially we can get the closest warehouse to a customer
+      // From there we can calculate the time taken to complete the single order
+      // For an order we also want to store what the closest warehouse is,
+      // so that we can determine which drone is best suited
+
       // Calculate the warehouses we need to go to for the products
       for (ProductType ptKey : o.items.keySet()) {
         int quantityRequired = o.items.get(ptKey);
         int quantityObtained = 0;
 
         while (quantityObtained < quantityRequired) {
+          // TODO: We can also try to get the closest warehouse to the customer, to improve delivery time
           for (Warehouse w : warehouses) {
             int currentWarehouseQuantity = w.getQuantity(ptKey);
             int quantityRemaining = (quantityRequired - quantityObtained);
@@ -96,6 +104,7 @@ public class GoogleHashcode2016 {
         List<Action> flyingActions = createFlyingActions(distanceToWarehouse);
         actions.addAll(flyingActions);
 
+        // TODO: Check if we can load up with more than one OrderItem
         droneCommands.add(new Command("L", oi.warehouse.id, oi.productType.id));
         actions.add(new Action("L"));
 
