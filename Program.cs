@@ -43,8 +43,9 @@ namespace HashCode2016 {
                     warehouses.Add(warehouse);
 
                     var stock = Split(reader.ReadLine());
-
-                    // TODO: do something with warehouse stock.
+                    for (int j = 0; j < stock.Length; j++) {
+                        warehouse.AddStock(j, stock[j]);
+                    }
                 }
 
                 // TODO: Get orders.
