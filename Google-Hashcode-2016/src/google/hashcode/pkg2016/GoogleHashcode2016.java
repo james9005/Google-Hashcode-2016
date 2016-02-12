@@ -79,8 +79,10 @@ public class GoogleHashcode2016 {
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path)));
             
+            writer.write(commands.size() + '\n');
+            
             for(String c : commands) {
-                writer.write(c + '\n');
+                writer.write(String.format("%d\n", commands.size()));
             }
         } catch (Exception e) {
             e.printStackTrace();
