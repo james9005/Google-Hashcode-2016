@@ -95,10 +95,10 @@ public class GoogleHashcode2016 {
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path)));
             
-            writer.write(commands.size() + '\n');
+            writer.write(String.format("%d\n", commands.size()));
             
             for(String c : commands) {
-                writer.write(String.format("%d\n", commands.size()));
+                writer.write(String.format("%s\n", c));
             }
         } catch (Exception e) {
             e.printStackTrace();
