@@ -18,6 +18,11 @@ namespace HashCode2016 {
             get { return busyCounter > 0; }
         }
 
+        public void Move(GridItem gridItem) {
+            X = gridItem.X;
+            Y = gridItem.Y;
+        }
+
         public void Move(int x, int y) {
             X = x;
             Y = y;

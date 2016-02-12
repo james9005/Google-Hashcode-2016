@@ -24,9 +24,13 @@ namespace HashCode2016Test {
         public void TestMove() {
             Drone drone = new Drone(0, 0, 0);
 
-            drone.Move(3, 5);
+            drone.Move(new GridItem(3, 5));
             Assert.AreEqual(3, drone.X);
             Assert.AreEqual(5, drone.Y);
+
+            drone.Move(8, 9);
+            Assert.AreEqual(8, drone.X);
+            Assert.AreEqual(9, drone.Y);
         }
 
         [TestMethod]
