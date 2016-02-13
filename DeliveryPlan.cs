@@ -27,10 +27,14 @@ namespace HashCode2016 {
             get { return droneCommands; }
         }
 
-        public int GetAmountPreordered(int warehouseId, int productType) {
+        public int GetAmountPreorderedAtWarehouse(int warehouseId, int productType) {
             return stockPreorders
                 .Where(i => i.Item1 == warehouseId && i.Item2 == productType)
                 .Sum(i => i.Item3);
+        }
+
+        public int GetAmountStillToPreorder(int productType) {
+            return order.GetQuantityToDeliver(productType) - stockPreorders.Where(s => s.Item2 == productType).Sum(s => s.Item3);
         }
 
         public void AddLoadDroneCommand(int warehouseId, int productType, int quantity) {
@@ -53,6 +57,16 @@ namespace HashCode2016 {
                     order.Id,
                     productType,
                     quantity));
+        }
+
+        public bool IsDeliveryPlanComplete() {
+            foreach (int productType in order.GetProductTypesToDeliver()) {
+                if (GetAmountStillToPreorder(productType) > 0) {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
