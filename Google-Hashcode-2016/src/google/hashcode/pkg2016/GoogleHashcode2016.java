@@ -2,6 +2,7 @@ package google.hashcode.pkg2016;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -57,6 +59,8 @@ public class GoogleHashcode2016 {
 
         for (Order o : ordersBySmallestQuantity) {
           orderPlans.add(getOrderPlan(dummyDrone, o));
+          
+          System.out.println(String.format("Generated plan for Order %d", o.id));
         }
         
         System.out.println("Order plans generated");
@@ -170,9 +174,10 @@ public class GoogleHashcode2016 {
     }
     
     public OrderPlan getOrderPlan(Drone d, Order o) {
-      List<OrderItem> orderItems = new ArrayList<OrderItem>();
       List<Action> actions = new ArrayList<Action>();
       List<Command> droneCommands = new ArrayList<Command>();
+      
+      Multimap<Warehouse, OrderItem> itemsAtWarehouses = HashMultimap.create();
 
       // TODO: Initially we can get the closest warehouse to a customer
       // From there we can calculate the time taken to complete the single order
@@ -199,13 +204,21 @@ public class GoogleHashcode2016 {
 
           if (currentWarehouseQuantity >= quantityRemaining) {
             // If the warehouse has the required quantity we need
-            orderItems.addAll(getOrdersForQuantity(closestAvailableWarehouse, ptKey, quantityRemaining));
+            List<OrderItem> ordersAtWarehouse = getOrdersForQuantity(closestAvailableWarehouse, ptKey, quantityRemaining);
+            
+            itemsAtWarehouses.putAll(closestAvailableWarehouse, ordersAtWarehouse);
+            
             closestAvailableWarehouse.reserve(ptKey, quantityRemaining);
+            
             quantityObtained += quantityRemaining;
           } else if(currentWarehouseQuantity < quantityRemaining && currentWarehouseQuantity > 0) {
             // The warehouse has some of what we require
-            orderItems.addAll(getOrdersForQuantity(closestAvailableWarehouse, ptKey, currentWarehouseQuantity));
+            List<OrderItem> ordersAtWarehouse = getOrdersForQuantity(closestAvailableWarehouse, ptKey, currentWarehouseQuantity);
+            
+            itemsAtWarehouses.putAll(closestAvailableWarehouse, ordersAtWarehouse);
+            
             closestAvailableWarehouse.reserve(ptKey, currentWarehouseQuantity);
+            
             quantityObtained += currentWarehouseQuantity;
           }
         }
@@ -214,29 +227,78 @@ public class GoogleHashcode2016 {
       d.x = firstWarehouse.x;
       d.y = firstWarehouse.y;
 
-      // For each item on the order
-      for(OrderItem oi : orderItems) {
-        int distanceToWarehouse = oi.warehouse.distanceBetween(d);
+      // Get the warehouses that we need to go to
+      List<Warehouse> warehousesToGoTo = itemsAtWarehouses.values().stream()
+        .map((OrderItem a) -> a.warehouse)
+        .distinct()
+        .sorted((Warehouse a, Warehouse b) -> a.distanceBetween(d) - b.distanceBetween(d))
+        .collect(Collectors.toList());
 
-        List<Action> flyingActions = createFlyingActions(distanceToWarehouse);
-        actions.addAll(flyingActions);
+      // Loop through each warehouse
+      for (Warehouse w : warehousesToGoTo) {
+        boolean completedWarehouse = false;
 
-        // TODO: Check if we can load up with more than one OrderItem
-        droneCommands.add(new Command("L", oi.warehouse.id, oi.productType.id, 1));
-        actions.add(new Action("L"));
+        while (!completedWarehouse) {
+          Multimap<Integer, Set<OrderItem>> bestCombinations = HashMultimap.create();
 
-        int distanceToCustomer  = o.distanceBetween(d);
+          Set<OrderItem> remainingItemsAtWarehouse = itemsAtWarehouses.get(w).stream()
+            .filter((OrderItem a) -> !a.accounted)
+            .collect(Collectors.toSet());
 
-        flyingActions = createFlyingActions(distanceToCustomer);
-        actions.addAll(flyingActions);
+          // Check if we have completed
+          completedWarehouse = remainingItemsAtWarehouse.isEmpty();
 
-        droneCommands.add(new Command("D", o.id, oi.productType.id, 1));
-        actions.add(new Action("D"));
+          if (completedWarehouse) continue;
+
+          // Calculate the best case based on all possible combinations
+          Set<Set<OrderItem>> powerSet = Sets.powerSet(remainingItemsAtWarehouse);
+
+          for (Set<OrderItem> combination : powerSet) {
+            Integer totalWeight = combination.stream()
+              .map((OrderItem a) -> a.productType.weight)
+              .reduce(new Integer(0), (Integer a, Integer b) -> a + b);
+
+            if (totalWeight <= maxDroneWeight) {
+              bestCombinations.put(totalWeight, combination);
+            }
+          }
+
+          // Get all the keys for the best combinations
+          // These will be the total weights for the drone
+          TreeSet<Integer> keys = new TreeSet(bestCombinations.keySet());
+
+          Set<OrderItem> bestCurrentCombination = bestCombinations.get(keys.first()).stream()
+            .findAny()
+            .get();
+
+          // Fly to the warehouse
+          int distanceToWarehouse = w.distanceBetween(d);
+          
+          List<Action> flyingActions = createFlyingActions(distanceToWarehouse);
+          actions.addAll(flyingActions);
+          
+          // Fly to customer
+          int distanceToCustomer  = o.distanceBetween(d);
+          
+          flyingActions = createFlyingActions(distanceToCustomer);
+          actions.addAll(flyingActions);
+          
+          // Actions for delivering and loading
+          for (OrderItem oi : bestCurrentCombination) {
+            droneCommands.add(new Command("L", w.id, oi.productType.id, 1));
+            actions.add(new Action("L"));
+            
+            oi.accounted = true;
+            
+            droneCommands.add(new Command("D", o.id, oi.productType.id, 1));
+            actions.add(new Action("D"));
+          }
+        }
       }
-
+      
       d.setLocationBasedOnOrder(o);
 
-      return new OrderPlan(orderItems, actions, droneCommands, firstWarehouse, o);
+      return new OrderPlan(new ArrayList<OrderItem>(itemsAtWarehouses.values()), actions, droneCommands, firstWarehouse, o);
     }
 
     public List<Action> createFlyingActions(int distance) {
