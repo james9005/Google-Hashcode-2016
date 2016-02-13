@@ -8,9 +8,11 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class GoogleHashcode2016 {
 
@@ -50,7 +52,11 @@ public class GoogleHashcode2016 {
         
         Drone dummyDrone = new Drone(0, 0, 0);
         
-        for (Order o : orders) {
+        List<Order> ordersBySmallestQuantity = orders.stream()
+          .sorted((Order a, Order b) -> a.items.size() - b.items.size())
+          .collect(Collectors.toList());
+
+        for (Order o : ordersBySmallestQuantity) {
           orderPlans.add(getOrderPlan(dummyDrone, o));
         }
         
@@ -64,7 +70,7 @@ public class GoogleHashcode2016 {
               OrderPlan op = orderPlans.get(currentOrder);
               d.addOrderPlan(op);
               
-              System.out.println(String.format("Drone %d working on order %d", d.id, op.order.id));
+              // System.out.println(String.format("Drone %d working on order %d", d.id, op.order.id));
               
               currentOrder++;
             }
@@ -190,7 +196,7 @@ public class GoogleHashcode2016 {
         actions.addAll(flyingActions);
 
         // TODO: Check if we can load up with more than one OrderItem
-        droneCommands.add(new Command("L", oi.warehouse.id, oi.productType.id));
+        droneCommands.add(new Command("L", oi.warehouse.id, oi.productType.id, 1));
         actions.add(new Action("L"));
 
         int distanceToCustomer  = o.distanceBetween(d);
@@ -198,7 +204,7 @@ public class GoogleHashcode2016 {
         flyingActions = createFlyingActions(distanceToCustomer);
         actions.addAll(flyingActions);
 
-        droneCommands.add(new Command("D", o.id, oi.productType.id));
+        droneCommands.add(new Command("D", o.id, oi.productType.id, 1));
         actions.add(new Action("D"));
       }
 
