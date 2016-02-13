@@ -27,6 +27,7 @@ namespace HashCode2016Test {
             // Load 10 of type 0 (weigh 5 per unit).
             drone.Load(0, 10);
             Assert.AreEqual(50, drone.CalculatePayload());
+            Assert.AreEqual(20, drone.CalculateRemainingPayload());
 
             // Load 2 of type 1 (weigh 10 per unit).
             drone.Load(1, 2);

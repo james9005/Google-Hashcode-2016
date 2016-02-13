@@ -71,6 +71,10 @@ namespace HashCode2016 {
             return weight;
         }
 
+        public int CalculateRemainingPayload() {
+            return Program.maxDronePayload - CalculatePayload();
+        }
+
         public void AddCommandsToHistory(IEnumerable<string> commands) {
             commandHistory.AddRange(commands);
         }
