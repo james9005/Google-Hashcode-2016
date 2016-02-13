@@ -10,6 +10,8 @@ public class OrderPlan {
   public List<Command> commands;
   
   public Warehouse firstWarehouse;
+  
+  public boolean completed = false;
 
   public OrderPlan(List<OrderItem> oi, List<Action> a, List<Command> c, Warehouse first, Order o) {
     actions = a;

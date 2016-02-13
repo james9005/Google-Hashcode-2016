@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 import java.util.TreeSet;
@@ -28,6 +27,7 @@ public class GoogleHashcode2016 {
     public List<Warehouse> warehouses;
     public List<Order> orders;
     public List<ProductType> productTypes;
+    public List<OrderPlan> orderPlans;
 
     public static void main(String[] args) {
         if (args.length == 2) {
@@ -40,14 +40,13 @@ public class GoogleHashcode2016 {
         warehouses = new ArrayList<>();
         orders = new ArrayList<>();
         productTypes = new ArrayList<>();
-
+        orderPlans = new ArrayList<>();
+                
         ParseFile(inputPath);
 
         int currentTurn = 0;
         int currentOrder = 0;
-        
-        List<OrderPlan> orderPlans = new ArrayList<OrderPlan>();
-        
+
         // TODO: We can sort the OrderPlan based on quickest time to complete
         
         Drone dummyDrone = new Drone(0, 0, 0);
@@ -67,7 +66,7 @@ public class GoogleHashcode2016 {
             if (!d.isBusy()) {
               // TODO: We want to get all the order plans (which will be warehouse to customer)
               // Calculate the closest warehouse and find the shortest plan for a drone to run with
-              OrderPlan op = orderPlans.get(currentOrder);
+              OrderPlan op = getClosestOrderPlanToDrone(d);
               d.addOrderPlan(op);
               
               // System.out.println(String.format("Drone %d working on order %d", d.id, op.order.id));
@@ -86,6 +85,26 @@ public class GoogleHashcode2016 {
         }
         
         WriteFile(outputPath, allCommands);
+    }
+    
+    public OrderPlan getClosestOrderPlanToDrone(Drone d) {
+      List<OrderPlan> remainingPlans = orderPlans.stream()
+        .filter((OrderPlan o) -> !o.completed)
+        .collect(Collectors.toList());
+      
+      OrderPlan closestOrderPlan = remainingPlans.stream().reduce((OrderPlan a, OrderPlan b) -> {
+        int distanceA = a.firstWarehouse.distanceBetween(d);
+        int distanceB = b.firstWarehouse.distanceBetween(d);
+        
+        if (distanceA < distanceB)
+          return a;
+        else
+          return b;
+      }).get();
+      
+      closestOrderPlan.completed = true;
+      
+      return closestOrderPlan;
     }
 
     public List<String> outputCommands(int droneId, List<Command> commands) {
