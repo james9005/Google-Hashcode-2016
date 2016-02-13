@@ -67,7 +67,10 @@ public class GoogleHashcode2016 {
               // TODO: We want to get all the order plans (which will be warehouse to customer)
               // Calculate the closest warehouse and find the shortest plan for a drone to run with
               OrderPlan op = getClosestOrderPlanToDrone(d);
-              d.addOrderPlan(op);
+              
+              if (op != null) {
+                d.addOrderPlan(op);
+              }
               
               // System.out.println(String.format("Drone %d working on order %d", d.id, op.order.id));
               
@@ -91,6 +94,10 @@ public class GoogleHashcode2016 {
       List<OrderPlan> remainingPlans = orderPlans.stream()
         .filter((OrderPlan o) -> !o.completed)
         .collect(Collectors.toList());
+      
+      if (remainingPlans.isEmpty()) {
+        return null;
+      }
       
       OrderPlan closestOrderPlan = remainingPlans.stream().reduce((OrderPlan a, OrderPlan b) -> {
         int distanceA = a.firstWarehouse.distanceBetween(d);
