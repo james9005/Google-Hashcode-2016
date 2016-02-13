@@ -233,13 +233,15 @@ public class GoogleHashcode2016 {
         .distinct()
         .sorted((Warehouse a, Warehouse b) -> a.distanceBetween(d) - b.distanceBetween(d))
         .collect(Collectors.toList());
+      
+      Multimap<Integer, Set<OrderItem>> bestCombinations = HashMultimap.create();
 
       // Loop through each warehouse
       for (Warehouse w : warehousesToGoTo) {
         boolean completedWarehouse = false;
-
+        
         while (!completedWarehouse) {
-          Multimap<Integer, Set<OrderItem>> bestCombinations = HashMultimap.create();
+          bestCombinations.clear();
 
           Set<OrderItem> remainingItemsAtWarehouse = itemsAtWarehouses.get(w).stream()
             .filter((OrderItem a) -> !a.accounted)
@@ -248,12 +250,14 @@ public class GoogleHashcode2016 {
           // Check if we have completed
           completedWarehouse = remainingItemsAtWarehouse.isEmpty();
 
-          if (completedWarehouse) continue;
+          if (completedWarehouse) break;
 
           // Calculate the best case based on all possible combinations
           Set<Set<OrderItem>> powerSet = Sets.powerSet(remainingItemsAtWarehouse);
 
           for (Set<OrderItem> combination : powerSet) {
+            if (combination.isEmpty()) continue;
+            
             Integer totalWeight = combination.stream()
               .map((OrderItem a) -> a.productType.weight)
               .reduce(new Integer(0), (Integer a, Integer b) -> a + b);
@@ -267,7 +271,7 @@ public class GoogleHashcode2016 {
           // These will be the total weights for the drone
           TreeSet<Integer> keys = new TreeSet(bestCombinations.keySet());
 
-          Set<OrderItem> bestCurrentCombination = bestCombinations.get(keys.first()).stream()
+          Set<OrderItem> bestCurrentCombination = bestCombinations.get(keys.last()).stream()
             .findAny()
             .get();
 
@@ -283,13 +287,16 @@ public class GoogleHashcode2016 {
           flyingActions = createFlyingActions(distanceToCustomer);
           actions.addAll(flyingActions);
           
-          // Actions for delivering and loading
+          // Actions for loading
           for (OrderItem oi : bestCurrentCombination) {
             droneCommands.add(new Command("L", w.id, oi.productType.id, 1));
             actions.add(new Action("L"));
             
             oi.accounted = true;
-            
+          }
+          
+          // Actions for delivering
+          for (OrderItem oi : bestCurrentCombination) {
             droneCommands.add(new Command("D", o.id, oi.productType.id, 1));
             actions.add(new Action("D"));
           }
