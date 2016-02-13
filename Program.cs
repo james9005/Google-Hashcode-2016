@@ -188,8 +188,8 @@ namespace HashCode2016 {
                     }
 
                     // Move the drone to the warehouse.
-                    drone.Move(warehouse);
                     turns += drone.DistanceBetween(warehouse);
+                    drone.Move(warehouse);
 
                     // For each product type, get as much as we can carry.
                     foreach (int productType in productTypesToDeliver) {
@@ -211,8 +211,8 @@ namespace HashCode2016 {
                     }
 
                     // So we've picked up as much as we can, let's drop it off to the customer.
-                    drone.Move(order);
                     turns += drone.DistanceBetween(order);
+                    drone.Move(order);
 
                     foreach (int productType in productTypesToDeliver) {
                         int quantityOnBoard = drone.GetCurrentQuantityOfProductType(productType);
