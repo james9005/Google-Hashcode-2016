@@ -118,6 +118,7 @@ namespace HashCode2016 {
                     // many points you get.
                     var order = remainingOrders
                         .OrderBy(o => o.GetTotalNumberOfItems())
+                        .ThenBy(o => o.DistanceBetween(drone))
                         .FirstOrDefault();
 
                     if (order == null) {
@@ -143,6 +144,8 @@ namespace HashCode2016 {
 
                         // Remove the order from the list.
                         remainingOrders.Remove(order);
+
+                        Console.WriteLine("Orders remaining: " + remainingOrders.Count);
                     }
 
                     // TODO: if we don't have time to process the order, the drone should be assigned a new order.
@@ -168,56 +171,66 @@ namespace HashCode2016 {
 
             var productTypesToDeliver = order.GetProductTypesToDeliver();
 
-            foreach (var productType in productTypesToDeliver) {
-                int quantityToPreorder = order.GetQuantityToDeliver(productType);
-                int maxDroneCanCarry = maxDronePayload / productTypeWeights[productType];
-                int quantityOnBoard = drone.GetCurrentQuantityOfProductType(productType);
+            var warehousesByDistance = warehouses.OrderBy(w => order.DistanceBetween(w));
 
-                while (quantityToPreorder > 0 || quantityOnBoard > 0) {
+            foreach (var warehouse in warehousesByDistance) {
+                while (true) {
+                    // Find out if this warehouse is suitable.
+                    var productTypeDetails = productTypesToDeliver
+                        .Select(pt => new {
+                            AmountStillToPreorder = plan.GetAmountStillToPreorder(pt),
+                            WarehouseStockLevel = warehouse.GetStockLevel(pt) - plan.GetAmountPreorderedAtWarehouse(warehouse.Id, pt),
+                        });
 
-                    if (quantityOnBoard == maxDroneCanCarry || quantityToPreorder == 0) {
-                        // Don't need to preorder any more stock or we're full.
-                        turns += drone.DistanceBetween(order) + 1;
-                        drone.Move(order);
-
-                        plan.AddDeliverDroneCommand(productType, quantityOnBoard);
-                        drone.Unload(productType, quantityOnBoard);
-                    } else {
-                        // Find the closest warehouse that has it in stock.
-                        var warehouseDetails = warehouses
-                            .Select(w => new {
-                                Warehouse = w,
-                                Distance = drone.DistanceBetween(w),
-                                // Figure out how much stock would be left after we collect our preorders.
-                                // I don't actually want to remove the stock from the warehouse, because
-                                // we're not actually processing this order yet. There might not be
-                                // enough time to do so.
-                                StockRemaining = w.GetStockLevel(productType) - plan.GetAmountPreordered(w.Id, productType),
-                            })
-                            .Where(w => w.StockRemaining > 0)
-                            .OrderBy(w => w.Distance)
-                            .First();
-
-                        var warehouse = warehouseDetails.Warehouse;
-                        int totalQuantityAtWarehouse = warehouseDetails.StockRemaining;
-
-                        // Move the drone to the warehouse.
-                        turns += drone.DistanceBetween(warehouse) + 1;
-                        drone.Move(warehouse);
-
-                        // Figure out how much we'll be picking up from the warehouse.
-                        int warehousePreorderQuantity = Math.Min(Math.Min(quantityToPreorder, totalQuantityAtWarehouse), maxDroneCanCarry);
-
-                        // Move the stock from the warehouse to the drone.
-                        plan.AddLoadDroneCommand(warehouse.Id, productType, warehousePreorderQuantity);
-                        drone.Load(productType, warehousePreorderQuantity);
-
-                        // Update the amount still to collect.
-                        quantityToPreorder -= warehousePreorderQuantity;
+                    if (!productTypeDetails.Any(ptd => ptd.AmountStillToPreorder > 0 && ptd.WarehouseStockLevel > 0)) {
+                        // Nope, this warehouse is useless to us.
+                        break;
                     }
 
-                    quantityOnBoard = drone.GetCurrentQuantityOfProductType(productType);
+                    // Move the drone to the warehouse.
+                    drone.Move(warehouse);
+                    turns += drone.DistanceBetween(warehouse);
+
+                    // For each product type, get as much as we can carry.
+                    foreach (int productType in productTypesToDeliver) {
+                        int remainingPayload = drone.CalculateRemainingPayload();
+                        int mostCanCarry = remainingPayload / productTypeWeights[productType];
+                        int amountToPreorder = plan.GetAmountStillToPreorder(productType);
+                        int amountInStock = warehouse.GetStockLevel(productType) - plan.GetAmountPreorderedAtWarehouse(warehouse.Id, productType);
+
+                        int preorderQuantity = Math.Min(Math.Min(mostCanCarry, amountToPreorder), amountInStock);
+
+                        if (preorderQuantity == 0) {
+                            continue;
+                        }
+
+                        // Move the stock to the drone.
+                        plan.AddLoadDroneCommand(warehouse.Id, productType, preorderQuantity);
+                        drone.Load(productType, preorderQuantity);
+                        turns++;
+                    }
+
+                    // So we've picked up as much as we can, let's drop it off to the customer.
+                    drone.Move(order);
+                    turns += drone.DistanceBetween(order);
+
+                    foreach (int productType in productTypesToDeliver) {
+                        int quantityOnBoard = drone.GetCurrentQuantityOfProductType(productType);
+                        if (quantityOnBoard != 0) {
+                            // We've got some on board to deliver.
+                            plan.AddDeliverDroneCommand(productType, quantityOnBoard);
+                            drone.Unload(productType, quantityOnBoard);
+                            turns++;
+                        }
+                    }
                 }
+
+                // Check to see if the delivery plan is complete.
+                // If it isn't we'll try the next warehouse.
+                if (plan.IsDeliveryPlanComplete()) {
+                    break;
+                }
+
             }
 
             // Set the number of turns the order will take.
